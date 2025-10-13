@@ -6,6 +6,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #set(GRAPHICS GRAPHICS_API_OPENGL_21)
 SET(CMAKE_CXX_FLAGS  "-g")
 
+# para poder descargar raylib en windows (falla por falta de certificados)
+SET(CMAKE_TLS_VERIFY 0)
+
 # Dependencies
 set(RAYLIB_VERSION 5.5)
 find_package(raylib ${RAYLIB_VERSION} QUIET) # QUIET or REQUIRED
