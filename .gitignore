@@ -36,3 +36,5 @@ build/*
 
 *.cpp-back
 *.h-back
+
+styles/*
