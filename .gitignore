@@ -32,3 +32,9 @@
 *.app
 
 build/*
+.vscode/*
+
+*.cpp-back
+*.h-back
+
+styles/*
