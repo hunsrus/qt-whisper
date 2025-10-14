@@ -28,8 +28,8 @@ static char whisperPath[512] = "..\\src\\whisper\\whisper-cli.exe";
 
 // Variables globales o parte de alguna estructura
 bool PROC_SHOULD_RUN = true;
-static float progress_ = 0;
-static float audioLength = 0;
+static float progress_ = 0.0f;
+static float audioLength = 0.1f;
 
 static char TEXT_VIEW[BUFFER_SIZE];
 
