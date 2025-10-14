@@ -161,8 +161,9 @@ int main(int argc, char *argv[])
     GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
 
     float margin = windowHeight/20.0f;
-    Vector2 buttonSize = {(windowWidth-margin*3.0f)/2.0f, (windowHeight-margin*6.0f)/5.0f};
-    Vector2 textBoxSize = {buttonSize.x, windowHeight-margin*2.0f};
+    Vector2 buttonSize = {(windowHeight-margin*6.0f)/5.0f, (windowHeight-margin*6.0f)/5.0f};
+    Vector2 labelSize = {(windowWidth-margin*3.0f)/2.0f-margin*2.0f-buttonSize.x, (windowHeight-margin*6.0f)/5.0f};
+    Vector2 textBoxSize = {labelSize.x+buttonSize.x+margin*2, windowHeight-margin*2.0f};
     
     char fileNameToLoad[512] = { 0 };
     char fileSelectionMode[255] = { 0 };
@@ -182,9 +183,11 @@ int main(int argc, char *argv[])
             windowHeight = GetScreenHeight();
 
             margin = windowHeight/20.0f;
-            buttonSize.x = (windowWidth-margin*3.0f)/2.0f;
+            buttonSize.x = (windowHeight-margin*6.0f)/5.0f;
             buttonSize.y = (windowHeight-margin*6.0f)/5.0f;
-            textBoxSize.x = buttonSize.x;
+            labelSize.x = (windowWidth-margin*3.0f)/2.0f-margin*2.0f-buttonSize.x;
+            labelSize.y = (windowHeight-margin*6.0f)/5.0f;
+            textBoxSize.x = labelSize.x+buttonSize.x+margin*2;
             textBoxSize.y = windowHeight-margin*2.0f;
         }
 
@@ -218,33 +221,39 @@ int main(int argc, char *argv[])
             //----------------------------------------------------------------------------------
             if (fileDialogState.windowActive) GuiLock();
 
-            if (GuiButton((Rectangle){ margin, margin, buttonSize.x, buttonSize.y }, GuiIconText(ICON_GEAR, "Elegir modelo")))
+            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin/3.0f, labelSize.x, labelSize.y },"Modelo");
+            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin*1.5f, labelSize.x, labelSize.y },paths->modelPath);
+            if (GuiButton((Rectangle){ margin, margin, buttonSize.x, buttonSize.y }, GuiIconText(ICON_GEAR, "")))
             {
                 strcpy(fileSelectionMode, "MODEL");
                 fileDialogState.windowActive = true;
             }
 
-            if (GuiButton((Rectangle){ margin, margin*2+buttonSize.y, buttonSize.x, buttonSize.y }, GuiIconText(ICON_AUDIO, "Elegir archivo de audio")))
+            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin/3.0f+margin+buttonSize.y, labelSize.x, labelSize.y },"Audio");
+            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin*1.5f+margin+buttonSize.y, labelSize.x, labelSize.y },paths->inputPath);
+            if (GuiButton((Rectangle){ margin, margin*2+buttonSize.y, buttonSize.x, buttonSize.y }, GuiIconText(ICON_AUDIO, "")))
             {
                 strcpy(fileSelectionMode, "INPUT");
                 fileDialogState.windowActive = true;
             }
 
-            if (GuiButton((Rectangle){ margin, margin*3+buttonSize.y*2, buttonSize.x, buttonSize.y }, GuiIconText(ICON_FILE_SAVE, "Elegir archivo de salida")))
+            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin/3.0f+margin*2+buttonSize.y*2, labelSize.x, labelSize.y },"Texto");
+            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin*1.5f+margin*2+buttonSize.y*2, labelSize.x, labelSize.y },paths->inputPath);
+            if (GuiButton((Rectangle){ margin, margin*3+buttonSize.y*2, buttonSize.x, buttonSize.y }, GuiIconText(ICON_FILE_SAVE, "")))
             {
                 strcpy(fileSelectionMode, "OUTPUT");
                 fileDialogState.saveFileMode = true;
                 fileDialogState.windowActive = true;
             }
 
-            if (GuiButton((Rectangle){ margin, margin*4+buttonSize.y*3, buttonSize.x, buttonSize.y }, GuiIconText(ICON_PLAYER_PLAY, "Convertir")))
+            if (GuiButton((Rectangle){ margin, margin*4+buttonSize.y*3, margin*2+buttonSize.x+labelSize.x, buttonSize.y }, GuiIconText(ICON_PLAYER_PLAY, "Convertir")))
             {
                 pthread_create(&whisperThread, NULL, runCommand, (void *)paths);
             }
 
-            GuiProgressBar((Rectangle){ margin, margin*5+buttonSize.y*4, buttonSize.x, buttonSize.y },"", "", &progress_, 0, audioLength);
+            GuiProgressBar((Rectangle){ margin, margin*5+buttonSize.y*4, margin*2+buttonSize.x+labelSize.x, labelSize.y },"", "", &progress_, 0, audioLength);
 
-            GuiTextBoxMulti((Rectangle){ margin*2+buttonSize.x, margin, textBoxSize.x, textBoxSize.y }, TEXT_VIEW, 10, 0);
+            GuiTextBoxMulti((Rectangle){ margin*4+labelSize.x+buttonSize.x, margin, textBoxSize.x, textBoxSize.y }, TEXT_VIEW, 10, 0);
 
 
             GuiUnlock();
