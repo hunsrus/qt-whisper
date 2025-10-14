@@ -31,6 +31,8 @@ bool PROC_SHOULD_RUN = true;
 static float progress_ = 0;
 static float audioLength = 0;
 
+static char TEXT_VIEW[BUFFER_SIZE];
+
 // void runCommand(char modelPath[512], char inputPath[512]) {
 //     char fullCommand[512];
 //     snprintf(fullCommand, sizeof(fullCommand),
@@ -138,6 +140,8 @@ void* runCommand(void* paths)
 
             int totalSeconds = eh * 3600.0f + em * 60.0f + es;
             progress_ = totalSeconds;
+
+            strcpy(TEXT_VIEW,buffer);
             // fprintf(stdout, "progress: %d\n", progress_);
         }
     }
@@ -147,10 +151,18 @@ void* runCommand(void* paths)
 
 int main(int argc, char *argv[])
 {
-    InitWindow(480,560,"ray-whisper");
+    int windowWidth = 460;
+    int windowHeight = 240;
+
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(windowWidth,windowHeight,"ray-whisper");
 
     // Custom file dialog
     GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
+
+    float margin = windowHeight/20.0f;
+    Vector2 buttonSize = {(windowWidth-margin*3.0f)/2.0f, (windowHeight-margin*6.0f)/5.0f};
+    Vector2 textBoxSize = {buttonSize.x, windowHeight-margin*2.0f};
     
     char fileNameToLoad[512] = { 0 };
     char fileSelectionMode[255] = { 0 };
@@ -164,6 +176,17 @@ int main(int argc, char *argv[])
     
     while(!WindowShouldClose())
     {
+        if(IsWindowResized())
+        {
+            windowWidth = GetScreenWidth();
+            windowHeight = GetScreenHeight();
+
+            margin = windowHeight/20.0f;
+            buttonSize.x = (windowWidth-margin*3.0f)/2.0f;
+            buttonSize.y = (windowHeight-margin*6.0f)/5.0f;
+            textBoxSize.x = buttonSize.x;
+            textBoxSize.y = windowHeight-margin*2.0f;
+        }
 
         if (fileDialogState.SelectFilePressed)
         {
@@ -195,33 +218,34 @@ int main(int argc, char *argv[])
             //----------------------------------------------------------------------------------
             if (fileDialogState.windowActive) GuiLock();
 
-            if (GuiButton((Rectangle){ 20, 20, 200, 30 }, GuiIconText(ICON_GEAR, "Elegir modelo")))
+            if (GuiButton((Rectangle){ margin, margin, buttonSize.x, buttonSize.y }, GuiIconText(ICON_GEAR, "Elegir modelo")))
             {
                 strcpy(fileSelectionMode, "MODEL");
                 fileDialogState.windowActive = true;
             }
 
-            if (GuiButton((Rectangle){ 20, 20*2+30, 200, 30 }, GuiIconText(ICON_AUDIO, "Elegir archivo de audio")))
+            if (GuiButton((Rectangle){ margin, margin*2+buttonSize.y, buttonSize.x, buttonSize.y }, GuiIconText(ICON_AUDIO, "Elegir archivo de audio")))
             {
                 strcpy(fileSelectionMode, "INPUT");
                 fileDialogState.windowActive = true;
             }
 
-            if (GuiButton((Rectangle){ 20, 20*3+30*2, 200, 30 }, GuiIconText(ICON_FILE_SAVE, "Elegir archivo de salida")))
+            if (GuiButton((Rectangle){ margin, margin*3+buttonSize.y*2, buttonSize.x, buttonSize.y }, GuiIconText(ICON_FILE_SAVE, "Elegir archivo de salida")))
             {
                 strcpy(fileSelectionMode, "OUTPUT");
                 fileDialogState.saveFileMode = true;
                 fileDialogState.windowActive = true;
             }
 
-            if (GuiButton((Rectangle){ 20, 20*4+30*3, 200, 30 }, GuiIconText(ICON_PLAYER_PLAY, "Convertir")))
+            if (GuiButton((Rectangle){ margin, margin*4+buttonSize.y*3, buttonSize.x, buttonSize.y }, GuiIconText(ICON_PLAYER_PLAY, "Convertir")))
             {
                 pthread_create(&whisperThread, NULL, runCommand, (void *)paths);
             }
 
-            GuiTextBoxMulti((Rectangle){ 20, 20*5+30*4, 200, 200 }, "Lorem ipsum dolor sit amet consectetur adipiscing elit massa blandit leo tempor porttitor consequat magna phasellus, vel eget dictum non malesuada nunc netus platea mattis mauris curabitur erat per convallis. Ad nullam eros semper nunc libero vestibulum pharetra accumsan, venenatis gravida a vehicula leo conubia etiam, sem eget diam odio lacus vel rhoncus. Malesuada aenean primis auctor quisque netus nulla hendrerit blandit tortor praesent, sed potenti eu dictumst cum placerat litora vivamus risus ad, imperdiet magnis mollis felis a bibendum suscipit venenatis interdum.\n Massa eros netus volutpat taciti et, nibh eu ultrices velit purus, senectus lobortis inceptos parturient. Eget facilisi dapibus montes commodo placerat purus integer ridiculus nullam, malesuada scelerisque venenatis consequat primis viverra quam lacus cum conubia, nisi orci morbi natoque laoreet id elementum est. Per blandit phasellus habitasse morbi litora rutrum velit, convallis lacinia molestie montes vestibulum mattis, turpis cubilia natoque gravida hac auctor.", 10, 0);
+            GuiProgressBar((Rectangle){ margin, margin*5+buttonSize.y*4, buttonSize.x, buttonSize.y },"", "", &progress_, 0, audioLength);
 
-            GuiProgressBar((Rectangle){ 20, 20*6+30*4+200, 200, 30},"Progreso", "", &progress_, 0, audioLength);
+            GuiTextBoxMulti((Rectangle){ margin*2+buttonSize.x, margin, textBoxSize.x, textBoxSize.y }, TEXT_VIEW, 10, 0);
+
 
             GuiUnlock();
 
