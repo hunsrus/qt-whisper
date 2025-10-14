@@ -37,8 +37,12 @@ ADD_EXECUTABLE(${PROJECT_NAME}
 ${SOURCES}
 )
 
-
-target_link_libraries(${PROJECT_NAME} raylib pthread)
+# revisar para no mostrar la consola cuando sea versión release
+# if (WIN32)
+  # target_link_libraries(${PROJECT_NAME} raylib pthread -mwindows)
+# else()
+  target_link_libraries(${PROJECT_NAME} raylib pthread)
+# endif (WIN32)
 
 # add_custom_command(
 #   TARGET ${PROJECT_NAME} POST_BUILD

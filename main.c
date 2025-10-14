@@ -151,19 +151,28 @@ void* runCommand(void* paths)
 
 int main(int argc, char *argv[])
 {
-    int windowWidth = 460;
-    int windowHeight = 240;
+    int windowWidth = 640;
+    int windowHeight = 310;
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(windowWidth,windowHeight,"ray-whisper");
+    SetWindowMinSize(440*1.2f, 310*1.2f);
+
+    windowWidth = GetScreenWidth();
+    windowHeight = GetScreenHeight();
 
     // Custom file dialog
     GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
 
-    float margin = windowHeight/20.0f;
+    float margin = windowHeight/12.0f;
     Vector2 buttonSize = {(windowHeight-margin*6.0f)/5.0f, (windowHeight-margin*6.0f)/5.0f};
     Vector2 labelSize = {(windowWidth-margin*3.0f)/2.0f-margin*2.0f-buttonSize.x, (windowHeight-margin*6.0f)/5.0f};
     Vector2 textBoxSize = {labelSize.x+buttonSize.x+margin*2, windowHeight-margin*2.0f};
+
+    float fontSize = labelSize.y*0.5f;
+    Font font = LoadFontEx("../src/fonts/JetBrainsMono/JetBrainsMono-Bold.ttf", fontSize, 0, 250);
+    GuiSetFont(font);
+    GuiSetStyle(DEFAULT, TEXT_SIZE, fontSize);
     
     char fileNameToLoad[512] = { 0 };
     char fileSelectionMode[255] = { 0 };
@@ -182,13 +191,20 @@ int main(int argc, char *argv[])
             windowWidth = GetScreenWidth();
             windowHeight = GetScreenHeight();
 
-            margin = windowHeight/20.0f;
+            margin = windowHeight/12.0f;
             buttonSize.x = (windowHeight-margin*6.0f)/5.0f;
             buttonSize.y = (windowHeight-margin*6.0f)/5.0f;
             labelSize.x = (windowWidth-margin*3.0f)/2.0f-margin*2.0f-buttonSize.x;
             labelSize.y = (windowHeight-margin*6.0f)/5.0f;
             textBoxSize.x = labelSize.x+buttonSize.x+margin*2;
             textBoxSize.y = windowHeight-margin*2.0f;
+
+            fontSize = labelSize.y*0.4f;
+            font = LoadFontEx("../src/fonts/JetBrainsMono/JetBrainsMono-Bold.ttf", fontSize, 0, 250);
+            GuiSetFont(font);
+            GuiSetStyle(DEFAULT, TEXT_SIZE, fontSize);
+
+            fileDialogState.windowBounds = (Rectangle){ windowWidth/2 - 440/2, windowHeight/2 - 310/2, 440, 310 };
         }
 
         if (fileDialogState.SelectFilePressed)

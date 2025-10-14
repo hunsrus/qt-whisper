@@ -37,4 +37,6 @@ build/*
 *.cpp-back
 *.h-back
 
-styles/*
+src/models/*
+src/samples/*
+src/whisper/*
