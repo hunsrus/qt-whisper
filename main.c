@@ -15,6 +15,7 @@
 typedef struct{
     char modelPath[512];
     char inputPath[512];
+    char outputPath[512];
 }args;
 
 // #include <regex.h>
@@ -23,7 +24,7 @@ typedef struct{
 #define BUFFER_SIZE 512
 
 // static char whisperPath[512] = "~/whisper.cpp/build/bin/whisper-cli";
-static char whisperPath[512] = "C:\\Users\\Gabriel\\Downloads\\whisper-bin-x64\\Release\\whisper-cli.exe";
+static char whisperPath[512] = "..\\src\\whisper\\whisper-cli.exe";
 
 // Variables globales o parte de alguna estructura
 bool PROC_SHOULD_RUN = true;
@@ -106,8 +107,8 @@ void* runCommand(void* paths)
 {
     char fullCommand[512];
     snprintf(fullCommand, sizeof(fullCommand),
-             "%s -l es -m %s -f %s 2>&1",
-             whisperPath, ((args*)paths)->modelPath, ((args*)paths)->inputPath);
+             "%s -l es -m %s -f %s --output-txt --output-file %s 2>&1",
+             whisperPath, ((args*)paths)->modelPath, ((args*)paths)->inputPath, ((args*)paths)->outputPath);
 
     FILE* pipe = popen(fullCommand, "r");
     if (!pipe) {
@@ -154,13 +155,10 @@ int main(int argc, char *argv[])
     char fileNameToLoad[512] = { 0 };
     char fileSelectionMode[255] = { 0 };
 
-    char modelPath[512] = "~/whisper.cpp/models/ggml-base.bin";
-    char inputPath[512] = "~/whisper.cpp/samples/jfk.wav";
-    char outputPath[512] = { 0 };
-
     args *paths = (args *)malloc(sizeof(args));
-    strcpy(paths->modelPath, modelPath);
-    strcpy(paths->inputPath, inputPath);
+    strcpy(paths->modelPath, "..\\src\\models\\ggml-base.bin");
+    strcpy(paths->inputPath, "..\\src\\samples\\000981_jfk-space-race-speech-59951.mp3");
+    strcpy(paths->outputPath, "..\\src\\samples\\000981_jfk-space-race-speech-59951.txt");
 
     pthread_t whisperThread;
     
@@ -183,17 +181,11 @@ int main(int argc, char *argv[])
                 strcpy(paths->inputPath, fileNameToLoad);
             }else if(!strcmp(fileSelectionMode,"OUTPUT"))
             {   
-                strcpy(outputPath, fileNameToLoad);
-            }
-            // Load image file (if supported extension)
-            if (IsFileExtension(fileDialogState.fileNameText, ".png"))
-            {
-                // strcpy(fileNameToLoad, TextFormat("%s" PATH_SEPERATOR "%s", fileDialogState.dirPathText, fileDialogState.fileNameText));
-                // UnloadTexture(texture);
-                // texture = LoadTexture(fileNameToLoad);
+                strcpy(paths->outputPath, fileNameToLoad);
             }
 
             fileDialogState.SelectFilePressed = false;
+            fileDialogState.saveFileMode = false;
         }
 
         BeginDrawing();
@@ -218,13 +210,13 @@ int main(int argc, char *argv[])
             if (GuiButton((Rectangle){ 20, 20*3+30*2, 200, 30 }, GuiIconText(ICON_FILE_SAVE, "Elegir archivo de salida")))
             {
                 strcpy(fileSelectionMode, "OUTPUT");
+                fileDialogState.saveFileMode = true;
                 fileDialogState.windowActive = true;
             }
 
             if (GuiButton((Rectangle){ 20, 20*4+30*3, 200, 30 }, GuiIconText(ICON_PLAYER_PLAY, "Convertir")))
             {
                 pthread_create(&whisperThread, NULL, runCommand, (void *)paths);
-                // runCommand(modelPath,inputPath);
             }
 
             GuiTextBoxMulti((Rectangle){ 20, 20*5+30*4, 200, 200 }, "Lorem ipsum dolor sit amet consectetur adipiscing elit massa blandit leo tempor porttitor consequat magna phasellus, vel eget dictum non malesuada nunc netus platea mattis mauris curabitur erat per convallis. Ad nullam eros semper nunc libero vestibulum pharetra accumsan, venenatis gravida a vehicula leo conubia etiam, sem eget diam odio lacus vel rhoncus. Malesuada aenean primis auctor quisque netus nulla hendrerit blandit tortor praesent, sed potenti eu dictumst cum placerat litora vivamus risus ad, imperdiet magnis mollis felis a bibendum suscipit venenatis interdum.\n Massa eros netus volutpat taciti et, nibh eu ultrices velit purus, senectus lobortis inceptos parturient. Eget facilisi dapibus montes commodo placerat purus integer ridiculus nullam, malesuada scelerisque venenatis consequat primis viverra quam lacus cum conubia, nisi orci morbi natoque laoreet id elementum est. Per blandit phasellus habitasse morbi litora rutrum velit, convallis lacinia molestie montes vestibulum mattis, turpis cubilia natoque gravida hac auctor.", 10, 0);
