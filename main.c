@@ -24,7 +24,7 @@ typedef struct{
 #define BUFFER_SIZE 512
 
 // static char whisperPath[512] = "~/whisper.cpp/build/bin/whisper-cli";
-static char whisperPath[512] = "..\\src\\whisper\\whisper-cli.exe";
+static char whisperPath[512] = "src\\whisper\\whisper-cli.exe";
 
 // Variables globales o parte de alguna estructura
 bool PROC_SHOULD_RUN = true;
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
     bool outputTextBoxSelected = false;
 
     float fontSize = labelSize.y*0.5f;
-    Font font = LoadFontEx("../src/fonts/JetBrainsMono/JetBrainsMono-Bold.ttf", fontSize, 0, 250);
+    Font font = LoadFontEx("src/fonts/JetBrainsMono/JetBrainsMono-Bold.ttf", fontSize, 0, 250);
     GuiSetFont(font);
     GuiSetStyle(DEFAULT, TEXT_SIZE, fontSize);
     
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     char fileSelectionMode[255] = { 0 };
 
     args *paths = (args *)malloc(sizeof(args));
-    char modelPath[512] = "..\\src\\models";
+    char modelPath[512] = "src\\models";
     char modelName[512] = "ggml-base.bin";
     sprintf(paths->modelPath, "%s\\%s", modelPath, modelName);
     // strcpy(paths->modelPath, "..\\src\\models");
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     char inputName[512] = "000981_jfk-space-race-speech-59951.mp3";
     // strcpy(paths->inputPath, "..\\src\\samples");
     sprintf(paths->inputPath, "%s\\%s", inputPath, inputName);
-    char outputPath[512] = "..\\src\\samples";
+    char outputPath[512] = "src\\samples";
     char outputName[512] = "000981_jfk-space-race-speech-59951.txt";
     sprintf(paths->outputPath, "%s\\%s", outputPath, outputName);
     // strcpy(paths->outputPath, "..\\src\\samples");
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
             outputTextBoxBounds = (Rectangle){ margin*2+buttonSize.x, margin*1.5f+margin*2+buttonSize.y*2, labelSize.x, labelSize.y };
 
             fontSize = labelSize.y*0.4f;
-            font = LoadFontEx("../src/fonts/JetBrainsMono/JetBrainsMono-Bold.ttf", fontSize, 0, 250);
+            font = LoadFontEx("src/fonts/JetBrainsMono/JetBrainsMono-Bold.ttf", fontSize, 0, 250);
             GuiSetFont(font);
             GuiSetStyle(DEFAULT, TEXT_SIZE, fontSize);
 
