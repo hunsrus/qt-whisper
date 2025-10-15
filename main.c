@@ -151,7 +151,7 @@ void* runCommand(void* paths)
 
 int main(int argc, char *argv[])
 {
-    int windowWidth = 640;
+    int windowWidth = 530;
     int windowHeight = 310;
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -166,8 +166,15 @@ int main(int argc, char *argv[])
 
     float margin = windowHeight/12.0f;
     Vector2 buttonSize = {(windowHeight-margin*6.0f)/5.0f, (windowHeight-margin*6.0f)/5.0f};
-    Vector2 labelSize = {(windowWidth-margin*3.0f)/2.0f-margin*2.0f-buttonSize.x, (windowHeight-margin*6.0f)/5.0f};
-    Vector2 textBoxSize = {labelSize.x+buttonSize.x+margin*2, windowHeight-margin*2.0f};
+    Vector2 labelSize = {(windowWidth-margin*3.0f)/2.0f-margin-buttonSize.x, (windowHeight-margin*6.0f)/5.0f};
+    Vector2 textBoxSize = {labelSize.x+buttonSize.x+margin, windowHeight-margin*2.0f};
+
+    Rectangle modelTextBoxBounds = { margin*2+buttonSize.x, margin*1.5f, labelSize.x, labelSize.y };
+    bool modelTextBoxSelected = false;
+    Rectangle inputTextBoxBounds = { margin*2+buttonSize.x, margin*1.5f+margin+buttonSize.y, labelSize.x, labelSize.y };
+    bool inputTextBoxSelected = false;
+    Rectangle outputTextBoxBounds = { margin*2+buttonSize.x, margin*1.5f+margin*2+buttonSize.y*2, labelSize.x, labelSize.y };
+    bool outputTextBoxSelected = false;
 
     float fontSize = labelSize.y*0.5f;
     Font font = LoadFontEx("../src/fonts/JetBrainsMono/JetBrainsMono-Bold.ttf", fontSize, 0, 250);
@@ -178,11 +185,22 @@ int main(int argc, char *argv[])
     char fileSelectionMode[255] = { 0 };
 
     args *paths = (args *)malloc(sizeof(args));
-    strcpy(paths->modelPath, "..\\src\\models\\ggml-base.bin");
-    strcpy(paths->inputPath, "..\\src\\samples\\000981_jfk-space-race-speech-59951.mp3");
-    strcpy(paths->outputPath, "..\\src\\samples\\000981_jfk-space-race-speech-59951.txt");
+    char modelPath[512] = "..\\src\\models";
+    char modelName[512] = "ggml-base.bin";
+    sprintf(paths->modelPath, "%s\\%s", modelPath, modelName);
+    // strcpy(paths->modelPath, "..\\src\\models");
+    char inputPath[512] = "..\\src\\samples";
+    char inputName[512] = "000981_jfk-space-race-speech-59951.mp3";
+    // strcpy(paths->inputPath, "..\\src\\samples");
+    sprintf(paths->inputPath, "%s\\%s", inputPath, inputName);
+    char outputPath[512] = "..\\src\\samples";
+    char outputName[512] = "000981_jfk-space-race-speech-59951.txt";
+    sprintf(paths->outputPath, "%s\\%s", outputPath, outputName);
+    // strcpy(paths->outputPath, "..\\src\\samples");
 
     pthread_t whisperThread;
+
+    SetTargetFPS(60); // los controles se ponen como loquita si no están limitados los FPS
     
     while(!WindowShouldClose())
     {
@@ -194,10 +212,14 @@ int main(int argc, char *argv[])
             margin = windowHeight/12.0f;
             buttonSize.x = (windowHeight-margin*6.0f)/5.0f;
             buttonSize.y = (windowHeight-margin*6.0f)/5.0f;
-            labelSize.x = (windowWidth-margin*3.0f)/2.0f-margin*2.0f-buttonSize.x;
+            labelSize.x = (windowWidth-margin*3.0f)/2.0f-margin-buttonSize.x;
             labelSize.y = (windowHeight-margin*6.0f)/5.0f;
-            textBoxSize.x = labelSize.x+buttonSize.x+margin*2;
+            textBoxSize.x = labelSize.x+buttonSize.x+margin;
             textBoxSize.y = windowHeight-margin*2.0f;
+
+            modelTextBoxBounds = (Rectangle){ margin*2+buttonSize.x, margin*1.5f, labelSize.x, labelSize.y };
+            inputTextBoxBounds = (Rectangle){ margin*2+buttonSize.x, margin*1.5f+margin+buttonSize.y, labelSize.x, labelSize.y };
+            outputTextBoxBounds = (Rectangle){ margin*2+buttonSize.x, margin*1.5f+margin*2+buttonSize.y*2, labelSize.x, labelSize.y };
 
             fontSize = labelSize.y*0.4f;
             font = LoadFontEx("../src/fonts/JetBrainsMono/JetBrainsMono-Bold.ttf", fontSize, 0, 250);
@@ -230,6 +252,13 @@ int main(int argc, char *argv[])
             fileDialogState.saveFileMode = false;
         }
 
+        if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
+            modelTextBoxSelected = CheckCollisionPointRec(GetMousePosition(), modelTextBoxBounds) ? true : false;
+            inputTextBoxSelected = CheckCollisionPointRec(GetMousePosition(), inputTextBoxBounds) ? true : false;
+            outputTextBoxSelected = CheckCollisionPointRec(GetMousePosition(), outputTextBoxBounds) ? true : false;
+        }
+
         BeginDrawing();
             ClearBackground(RAYWHITE);
 
@@ -238,38 +267,41 @@ int main(int argc, char *argv[])
             if (fileDialogState.windowActive) GuiLock();
 
             GuiLabel((Rectangle){ margin*2+buttonSize.x, margin/3.0f, labelSize.x, labelSize.y },"Modelo");
-            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin*1.5f, labelSize.x, labelSize.y },paths->modelPath);
-            if (GuiButton((Rectangle){ margin, margin, buttonSize.x, buttonSize.y }, GuiIconText(ICON_GEAR, "")))
+            GuiTextBox(modelTextBoxBounds,paths->modelPath,fontSize,modelTextBoxSelected);
+            if (GuiButton((Rectangle){ margin, margin+margin*0.5f, buttonSize.x, buttonSize.y }, GuiIconText(ICON_GEAR, "")))
             {
                 strcpy(fileSelectionMode, "MODEL");
+                strcpy(fileDialogState.dirPathText, modelPath);
                 fileDialogState.windowActive = true;
             }
 
             GuiLabel((Rectangle){ margin*2+buttonSize.x, margin/3.0f+margin+buttonSize.y, labelSize.x, labelSize.y },"Audio");
-            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin*1.5f+margin+buttonSize.y, labelSize.x, labelSize.y },paths->inputPath);
-            if (GuiButton((Rectangle){ margin, margin*2+buttonSize.y, buttonSize.x, buttonSize.y }, GuiIconText(ICON_AUDIO, "")))
+            GuiTextBox(inputTextBoxBounds,paths->inputPath,fontSize,inputTextBoxSelected);
+            if (GuiButton((Rectangle){ margin, margin*2+buttonSize.y+margin*0.5f, buttonSize.x, buttonSize.y }, GuiIconText(ICON_AUDIO, "")))
             {
                 strcpy(fileSelectionMode, "INPUT");
+                strcpy(fileDialogState.dirPathText, inputPath);
                 fileDialogState.windowActive = true;
             }
 
             GuiLabel((Rectangle){ margin*2+buttonSize.x, margin/3.0f+margin*2+buttonSize.y*2, labelSize.x, labelSize.y },"Texto");
-            GuiLabel((Rectangle){ margin*2+buttonSize.x, margin*1.5f+margin*2+buttonSize.y*2, labelSize.x, labelSize.y },paths->inputPath);
-            if (GuiButton((Rectangle){ margin, margin*3+buttonSize.y*2, buttonSize.x, buttonSize.y }, GuiIconText(ICON_FILE_SAVE, "")))
+            GuiTextBox(outputTextBoxBounds,paths->outputPath,fontSize,outputTextBoxSelected);
+            if (GuiButton((Rectangle){ margin, margin*3+buttonSize.y*2+margin*0.5f, buttonSize.x, buttonSize.y }, GuiIconText(ICON_FILE_SAVE, "")))
             {
                 strcpy(fileSelectionMode, "OUTPUT");
+                strcpy(fileDialogState.dirPathText, outputPath);
                 fileDialogState.saveFileMode = true;
                 fileDialogState.windowActive = true;
             }
 
-            if (GuiButton((Rectangle){ margin, margin*4+buttonSize.y*3, margin*2+buttonSize.x+labelSize.x, buttonSize.y }, GuiIconText(ICON_PLAYER_PLAY, "Convertir")))
+            if (GuiButton((Rectangle){ margin, margin*4+buttonSize.y*3, margin+buttonSize.x+labelSize.x, buttonSize.y }, GuiIconText(ICON_PLAYER_PLAY, "Convertir")))
             {
                 pthread_create(&whisperThread, NULL, runCommand, (void *)paths);
             }
 
-            GuiProgressBar((Rectangle){ margin, margin*5+buttonSize.y*4, margin*2+buttonSize.x+labelSize.x, labelSize.y },"", "", &progress_, 0, audioLength);
+            GuiProgressBar((Rectangle){ margin, margin*5+buttonSize.y*4, margin+buttonSize.x+labelSize.x, labelSize.y },"", "", &progress_, 0, audioLength);
 
-            GuiTextBoxMulti((Rectangle){ margin*4+labelSize.x+buttonSize.x, margin, textBoxSize.x, textBoxSize.y }, TEXT_VIEW, 10, 0);
+            GuiTextBoxMulti((Rectangle){ margin*3+labelSize.x+buttonSize.x, margin, textBoxSize.x, textBoxSize.y }, TEXT_VIEW, 10, 0);
 
 
             GuiUnlock();
